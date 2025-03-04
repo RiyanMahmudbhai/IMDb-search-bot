@@ -231,38 +231,35 @@ async def imdb_callback(_, query):
         imdb_data = get_poster(query=data[3], id=True)
         buttons = []
         
-        # Handle trailer button
         if imdb_data.get('trailer'):
             trailer_url = imdb_data['trailer'][-1] if isinstance(imdb_data['trailer'], list) else imdb_data['trailer']
             buttons.append([InlineKeyboardButton("▶️ IMDb Trailer", url=trailer_url)])
         
-        # Add close button
         buttons.append([InlineKeyboardButton("🚫 Close", callback_data=f"imdb {user_id} close")])
         
-        # Safe chat ID and reply ID handling
+        # Safe chat ID handling
         if message.reply_to_message:
             chat_id = message.reply_to_message.chat.id
             reply_id = message.reply_to_message.id
-            target_message = message.reply_to_message
         else:
             chat_id = message.chat.id
             reply_id = message.id
-            target_message = message
 
-        # Generate caption from template
-        template = config_dict.IMDB_TEMPLATE
-        if not imdb_data or not template:
-            await query.answer("No results found!", show_alert=True)
-            return
-            
-        caption = template.format(
+        # Format template with fallback values
+        caption = config_dict.IMDB_TEMPLATE.format(
             title=imdb_data.get('title', 'N/A'),
             year=imdb_data.get('year', 'N/A'),
-            # Add all other format fields here...
+            genres=imdb_data.get('genres', 'N/A'),
+            rating=imdb_data.get('rating', 'N/A'),
+            votes=imdb_data.get('votes', 'N/A'),
+            languages=imdb_data.get('languages', 'N/A'),
+            runtime=imdb_data.get('runtime', 'N/A'),
+            release_date=imdb_data.get('release_date', 'N/A'),
+            countries=imdb_data.get('countries', 'N/A'),
             plot=imdb_data.get('plot', 'No plot available')
         )
 
-        # Try sending poster photo
+        # Send result
         try:
             if imdb_data.get('poster'):
                 await bot.send_photo(
@@ -273,28 +270,21 @@ async def imdb_callback(_, query):
                     reply_markup=InlineKeyboardMarkup(buttons)
                 )
             else:
-                await sendMessage(
-                    target_message,
-                    caption,
-                    InlineKeyboardMarkup(buttons),
-                    'https://telegra.ph/file/5af8d90a479b0d11df298.jpg'
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=caption,
+                    reply_to_message_id=reply_id,
+                    reply_markup=InlineKeyboardMarkup(buttons)
                 )
-        except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
-            # Fallback to different poster size
-            if imdb_data.get('poster'):
-                fallback_poster = imdb_data['poster'].replace('.jpg', "._V1_UX360.jpg")
-                await sendMessage(target_message, caption, InlineKeyboardMarkup(buttons), fallback_poster)
+        except Exception as e:
+            print(f"Error sending message: {e}")
+            await bot.send_message(chat_id, caption, reply_markup=InlineKeyboardMarkup(buttons))
 
-        # Cleanup
-        with suppress(Exception):
-            await message.delete()
-            if message.reply_to_message:
-                await message.reply_to_message.delete()
+        await message.delete()
 
     except Exception as e:
         print(f"Error in callback handler: {e}")
-        await query.answer("An error occurred, please try again!", show_alert=True)
-
+        await query.answer("❌ Error processing request", show_alert=True)
 
 # Register handlers
 bot.add_handler(MessageHandler(imdb_search, filters.command("imdb")))
