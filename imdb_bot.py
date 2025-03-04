@@ -1,14 +1,18 @@
-# Remove these problematic imports
-# from bot.helper.telegram_helper.filters import CustomFilters
-# from bot.helper.telegram_helper.bot_commands import BotCommands
-# from bot.helper.telegram_helper.message_utils import sendMessage, editMessage
-# from bot.helper.ext_utils.bot_utils import get_readable_time
+# At the VERY TOP of your file
+from pyrogram import Client, filters
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.errors import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
 
-# Add these replacements at the top
-from pyrogram.types import Message
+# Then other imports
+from imdb import Cinemagoer
+from pycountry import countries as conn
+import re
+from contextlib import suppress
 from datetime import timedelta
+from config import config_dict
 
 # Move this to the TOP after imports
+# Initialize client AFTER all imports
 bot = Client(
     "imdb_bot",
     api_id=config_dict.API_ID,
