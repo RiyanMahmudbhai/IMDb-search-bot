@@ -288,6 +288,11 @@ bot.add_handler(CallbackQueryHandler(imdb_callback, filters.regex(r'^imdb')))
 async def start(client: Client, message: Message):
     await message.reply("🎬 IMDb Search Bot Ready!\nUse /imdb <movie/tv name> to search")
 
+async def main():
+    await bot.start()
+    print("Bot started successfully!")
+    await bot.idle()
+
 if __name__ == "__main__":
     print("Starting bot...")
-    bot.run(main())
+    bot.run(main)  # Correct way: pass the function reference
