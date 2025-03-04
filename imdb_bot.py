@@ -72,7 +72,7 @@ async def editMessage(message: Message, text, buttons=None):
 
 async def imdb_search(_, message):
     if ' ' in message.text:
-        k = await send_Message(message, '<code>Searching IMDB ...</code>')
+        k = await sendMessage(message, '<code>Searching IMDB ...</code>')
         title = message.text.split(' ', 1)[1]
         user_id = message.from_user.id
         buttons = ButtonMaker()
@@ -81,17 +81,17 @@ async def imdb_search(_, message):
             if movie := imdb.get_movie(movieid):
                 buttons.ibutton(f"🎬 {movie.get('title')} ({movie.get('year')})", f"imdb {user_id} movie {movieid}")
             else:
-                return await edit_Message(k, "<i>No Results Found</i>")
+                return await editMessage(k, "<i>No Results Found</i>")
         else:
             movies = get_poster(title, bulk=True)
             if not movies:
-                return edit_Message("<i>No Results Found</i>, Try Again or Use <b>Title ID</b>", k)
+                return editMessage("<i>No Results Found</i>, Try Again or Use <b>Title ID</b>", k)
             for movie in movies: # Refurbished Soon !!
                 buttons.ibutton(f"🎬 {movie.get('title')} ({movie.get('year')})", f"imdb {user_id} movie {movie.movieID}")
         buttons.ibutton("🚫 Close 🚫", f"imdb {user_id} close")
-        await edit_Message(k, '<b><i>Here What I found on IMDb.com</i></b>', buttons.build_menu(1))
+        await editMessage(k, '<b><i>Here What I found on IMDb.com</i></b>', buttons.build_menu(1))
     else:
-        await send_Message(message, '<i>Send Movie / TV Series Name along with /imdb Command or send IMDB URL</i>')
+        await sendMessage(message, '<i>Send Movie / TV Series Name along with /imdb Command or send IMDB URL</i>')
 
 
 def get_poster(query, bulk=False, id=False, file=None):
@@ -274,9 +274,9 @@ async def imdb_callback(_, query):
                 await bot.send_photo(chat_id=query.message.reply_to_message.chat.id,  caption=cap, photo=imdb['poster'], reply_to_message_id=query.message.reply_to_message.id, reply_markup=InlineKeyboardMarkup(buttons))
             except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
                 poster = imdb.get('poster').replace('.jpg', "._V1_UX360.jpg")
-                await send_Message(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), poster)
+                await sendMessage(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), poster)
         else:
-            await send_Message(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), 'https://telegra.ph/file/5af8d90a479b0d11df298.jpg')
+            await sendMessage(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), 'https://telegra.ph/file/5af8d90a479b0d11df298.jpg')
         await message.delete()
     else:
         await query.answer()
