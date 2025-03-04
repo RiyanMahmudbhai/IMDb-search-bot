@@ -290,10 +290,11 @@ async def start(client: Client, message: Message):
 
 # Previous code remains the same until...
 
+app = Client("my_account")
+
 async def main():
     async with bot:
-        print("Bot started successfully!")
-        await bot.idle()
+        await bot.send_message("me", "Hi!")
 
 if __name__ == "__main__":
     print("Starting bot...")
