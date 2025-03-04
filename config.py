@@ -1,9 +1,9 @@
 from pyrogram import filters
 
 class Config:
-    BOT_TOKEN = "YOUR_BOT_TOKEN"
-    API_ID = "YOUR_API_ID"
-    API_HASH = "YOUR_API_HASH"
+    BOT_TOKEN = "7855160486:AAGW8E-BtC2gSxv_PiWoj1PrJHwwp9fcyUQ"
+    API_ID = "25902474"
+    API_HASH = "e0613c7a7b94e0025a20f5cf7bc69eee"
     IMDB_TEMPLATE = """
 🏷 <b>Title</b>: <b>{title}</b> [{year}]
 🎭 <b>Genres</b>: {genres}
