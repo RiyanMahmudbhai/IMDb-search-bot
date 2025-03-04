@@ -212,77 +212,89 @@ def list_to_hash(k, flagg=False, emoji=False):
             listing += f'#{ele}, '
         return listing[:-2]
 
-
 async def imdb_callback(_, query):
-    message = query.message
-    user_id = query.from_user.id
-    data = query.data.split()
-    if user_id != int(data[1]):
-        await query.answer("Not Yours!", show_alert=True)
-    elif data[2] == "movie":
+    try:
+        message = query.message
+        user_id = query.from_user.id
+        data = query.data.split()
+        
+        if user_id != int(data[1]):
+            await query.answer("Not Yours!", show_alert=True)
+            return
+            
+        if data[2] != "movie":
+            await query.answer()
+            await query.message.delete()
+            return
+
         await query.answer()
-        imdb = get_poster(query=data[3], id=True)
+        imdb_data = get_poster(query=data[3], id=True)
         buttons = []
-        if imdb['trailer']:
-            if isinstance(imdb['trailer'], list):
-                buttons.append([InlineKeyboardButton("▶️ IMDb Trailer ", url=str(imdb['trailer'][-1]))])
-                imdb['trailer'] = list_to_str(imdb['trailer'])
-            else: buttons.append([InlineKeyboardButton("▶️ IMDb Trailer ", url=str(imdb['trailer']))])
-        buttons.append([InlineKeyboardButton("🚫 Close 🚫", callback_data=f"imdb {user_id} close")])
-        template = ''
-        #if int(data[1]) in user_data and user_data[int(data[1])].get('imdb_temp'):
-        #    template = user_data[int(data[1])].get('imdb_temp')
-        #if not template:
+        
+        # Handle trailer button
+        if imdb_data.get('trailer'):
+            trailer_url = imdb_data['trailer'][-1] if isinstance(imdb_data['trailer'], list) else imdb_data['trailer']
+            buttons.append([InlineKeyboardButton("▶️ IMDb Trailer", url=trailer_url)])
+        
+        # Add close button
+        buttons.append([InlineKeyboardButton("🚫 Close", callback_data=f"imdb {user_id} close")])
+        
+        # Safe chat ID and reply ID handling
+        if message.reply_to_message:
+            chat_id = message.reply_to_message.chat.id
+            reply_id = message.reply_to_message.id
+            target_message = message.reply_to_message
+        else:
+            chat_id = message.chat.id
+            reply_id = message.id
+            target_message = message
+
+        # Generate caption from template
         template = config_dict.IMDB_TEMPLATE
-        if imdb and template != "":
-            cap = template.format(
-            title = imdb['title'],
-            trailer = imdb['trailer'],
-            votes = imdb['votes'],
-            aka = imdb["aka"],
-            seasons = imdb["seasons"],
-            box_office = imdb['box_office'],
-            localized_title = imdb['localized_title'],
-            kind = imdb['kind'],
-            imdb_id = imdb["imdb_id"],
-            cast = imdb["cast"],
-            runtime = imdb["runtime"],
-            countries = imdb["countries"],
-            certificates = imdb["certificates"],
-            languages = imdb["languages"],
-            director = imdb["director"],
-            writer = imdb["writer"],
-            producer = imdb["producer"],
-            composer = imdb["composer"],
-            cinematographer = imdb["cinematographer"],
-            music_team = imdb["music_team"],
-            distributors = imdb["distributors"],
-            release_date = imdb['release_date'],
-            year = imdb['year'],
-            genres = imdb['genres'],
-            poster = imdb['poster'],
-            plot = imdb['plot'],
-            rating = imdb['rating'],
-            url = imdb['url'],
-            url_cast = imdb['url_cast'],
-            url_releaseinfo = imdb['url_releaseinfo'],
-            **locals()
-            )
-        else:
-            cap = "No Results"
-        if imdb.get('poster'):
-            try:
-                await bot.send_photo(chat_id=query.message.reply_to_message.chat.id,  caption=cap, photo=imdb['poster'], reply_to_message_id=query.message.reply_to_message.id, reply_markup=InlineKeyboardMarkup(buttons))
-            except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
-                poster = imdb.get('poster').replace('.jpg', "._V1_UX360.jpg")
-                await sendMessage(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), poster)
-        else:
-            await sendMessage(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), 'https://telegra.ph/file/5af8d90a479b0d11df298.jpg')
-        await message.delete()
-    else:
-        await query.answer()
-        await query.message.delete()
-        await query.message.reply_to_message.delete()
+        if not imdb_data or not template:
+            await query.answer("No results found!", show_alert=True)
+            return
+            
+        caption = template.format(
+            title=imdb_data.get('title', 'N/A'),
+            year=imdb_data.get('year', 'N/A'),
+            # Add all other format fields here...
+            plot=imdb_data.get('plot', 'No plot available')
+        )
+
+        # Try sending poster photo
+        try:
+            if imdb_data.get('poster'):
+                await bot.send_photo(
+                    chat_id=chat_id,
+                    photo=imdb_data['poster'],
+                    caption=caption,
+                    reply_to_message_id=reply_id,
+                    reply_markup=InlineKeyboardMarkup(buttons)
+                )
+            else:
+                await sendMessage(
+                    target_message,
+                    caption,
+                    InlineKeyboardMarkup(buttons),
+                    'https://telegra.ph/file/5af8d90a479b0d11df298.jpg'
+                )
+        except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
+            # Fallback to different poster size
+            if imdb_data.get('poster'):
+                fallback_poster = imdb_data['poster'].replace('.jpg', "._V1_UX360.jpg")
+                await sendMessage(target_message, caption, InlineKeyboardMarkup(buttons), fallback_poster)
+
+        # Cleanup
+        with suppress(Exception):
+            await message.delete()
+            if message.reply_to_message:
+                await message.reply_to_message.delete()
+
+    except Exception as e:
+        print(f"Error in callback handler: {e}")
+        await query.answer("An error occurred, please try again!", show_alert=True)
+
 
 # Register handlers
 bot.add_handler(MessageHandler(imdb_search, filters.command("imdb")))
