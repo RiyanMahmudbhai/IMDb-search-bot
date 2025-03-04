@@ -1,8 +1,12 @@
-from pyrogram import Client, filters
-from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot.helper.telegram_helper.message_utils import sendMessage, editMessage
-from bot.helper.ext_utils.bot_utils import get_readable_time
+# Remove these problematic imports
+# from bot.helper.telegram_helper.filters import CustomFilters
+# from bot.helper.telegram_helper.bot_commands import BotCommands
+# from bot.helper.telegram_helper.message_utils import sendMessage, editMessage
+# from bot.helper.ext_utils.bot_utils import get_readable_time
+
+# Add these replacements at the top
+from pyrogram.types import Message
+from datetime import timedelta
 
 # Move this to the TOP after imports
 bot = Client(
@@ -19,6 +23,48 @@ bot.add_handler(CallbackQueryHandler(imdb_callback, filters=regex(r'^imdb')))
 @bot.on_message(filters.command("start"))
 async def start(client, message):
     await message.reply("IMDb Bot is running!")
+
+# Add these functions to your code
+def get_readable_time(seconds: int) -> str:
+    periods = [('d', 86400), ('h', 3600), ('m', 60), ('s', 1)]
+    result = ''
+    for period_name, period_seconds in periods:
+        if seconds >= period_seconds:
+            period_value, seconds = divmod(seconds, period_seconds)
+            result += f'{int(period_value)}{period_name} '
+    return result.strip()
+
+class ButtonMaker:
+    def __init__(self):
+        self.button = []
+        self.header_button = []
+        self.footer_button = []
+
+    def ibutton(self, key, data, position=None):
+        if not position:
+            self.button.append(InlineKeyboardButton(text=key, callback_data=data))
+        elif position == 'header':
+            self.header_button.append(InlineKeyboardButton(text=key, callback_data=data))
+        elif position == 'footer':
+            self.footer_button.append(InlineKeyboardButton(text=key, callback_data=data))
+
+    def build_menu(self, n_cols):
+        menu = [self.button[i:i + n_cols] for i in range(0, len(self.button), n_cols)]
+        if self.header_button:
+            menu.insert(0, self.header_button)
+        if self.footer_button:
+            menu.append(self.footer_button)
+        return InlineKeyboardMarkup(menu)
+
+async def sendMessage(message: Message, text, buttons=None, photo=None):
+    if photo:
+        return await message.reply_photo(photo=photo, caption=text, reply_markup=buttons)
+    return await message.reply(text, reply_markup=buttons)
+
+async def editMessage(message: Message, text, buttons=None):
+    await message.edit(text, reply_markup=buttons)
+
+
 
 imdb = Cinemagoer()
 
