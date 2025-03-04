@@ -233,7 +233,7 @@ async def imdb_callback(_, query):
         #if int(data[1]) in user_data and user_data[int(data[1])].get('imdb_temp'):
         #    template = user_data[int(data[1])].get('imdb_temp')
         #if not template:
-        template = config_dict['IMDB_TEMPLATE']
+        template = config_dict.IMDB_TEMPLATE
         if imdb and template != "":
             cap = template.format(
             title = imdb['title'],
