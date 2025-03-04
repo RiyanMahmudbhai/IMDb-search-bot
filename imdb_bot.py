@@ -17,6 +17,12 @@ bot = Client(
     bot_token=config_dict.BOT_TOKEN
 )
 
+
+imdb = Cinemagoer()
+
+IMDB_GENRE_EMOJI = {"Action": "🚀", "Adult": "🔞", "Adventure": "🌋", "Animation": "🎠", "Biography": "📜", "Comedy": "🪗", "Crime": "🔪", "Documentary": "🎞", "Drama": "🎭", "Family": "👨‍👩‍👧‍👦", "Fantasy": "🫧", "Film Noir": "🎯", "Game Show": "🎮", "History": "🏛", "Horror": "🧟", "Musical": "🎻", "Music": "🎸", "Mystery": "🧳", "News": "📰", "Reality-TV": "🖥", "Romance": "🥰", "Sci-Fi": "🌠", "Short": "📝", "Sport": "⛳", "Talk-Show": "👨‍🍳", "Thriller": "🗡", "War": "⚔", "Western": "🪩"}
+LIST_ITEMS = 4
+
 class ButtonMaker:
     def __init__(self):
         self.button = []
@@ -39,22 +45,6 @@ class ButtonMaker:
             menu.append(self.footer_button)
         return InlineKeyboardMarkup(menu)
 
-async def sendMessage(message: Message, text, buttons=None, photo=None):
-    if photo:
-        return await message.reply_photo(photo=photo, caption=text, reply_markup=buttons)
-    return await message.reply(text, reply_markup=buttons)
-
-async def editMessage(message: Message, text, buttons=None):
-    await message.edit(text, reply_markup=buttons)
-
-# Modified handler registration
-bot.add_handler(MessageHandler(imdb_search, filters.command("imdb")))  # Simple command filter
-bot.add_handler(CallbackQueryHandler(imdb_callback, filters.regex(r'^imdb')))
-
-
-@bot.on_message(filters.command("start"))
-async def start(client, message):
-    await message.reply("IMDb Bot is running!")
 
 # Add these functions to your code
 def get_readable_time(seconds: int) -> str:
@@ -66,15 +56,19 @@ def get_readable_time(seconds: int) -> str:
             result += f'{int(period_value)}{period_name} '
     return result.strip()
 
+async def sendMessage(message: Message, text, buttons=None, photo=None):
+    if photo:
+        return await message.reply_photo(photo=photo, caption=text, reply_markup=buttons)
+    return await message.reply(text, reply_markup=buttons)
 
-imdb = Cinemagoer()
+async def editMessage(message: Message, text, buttons=None):
+    await message.edit(text, reply_markup=buttons)
 
-IMDB_GENRE_EMOJI = {"Action": "🚀", "Adult": "🔞", "Adventure": "🌋", "Animation": "🎠", "Biography": "📜", "Comedy": "🪗", "Crime": "🔪", "Documentary": "🎞", "Drama": "🎭", "Family": "👨‍👩‍👧‍👦", "Fantasy": "🫧", "Film Noir": "🎯", "Game Show": "🎮", "History": "🏛", "Horror": "🧟", "Musical": "🎻", "Music": "🎸", "Mystery": "🧳", "News": "📰", "Reality-TV": "🖥", "Romance": "🥰", "Sci-Fi": "🌠", "Short": "📝", "Sport": "⛳", "Talk-Show": "👨‍🍳", "Thriller": "🗡", "War": "⚔", "Western": "🪩"}
-LIST_ITEMS = 4
+
 
 async def imdb_search(_, message):
     if ' ' in message.text:
-        k = await sendMessage(message, '<code>Searching IMDB ...</code>')
+        k = await send_Message(message, '<code>Searching IMDB ...</code>')
         title = message.text.split(' ', 1)[1]
         user_id = message.from_user.id
         buttons = ButtonMaker()
@@ -83,17 +77,17 @@ async def imdb_search(_, message):
             if movie := imdb.get_movie(movieid):
                 buttons.ibutton(f"🎬 {movie.get('title')} ({movie.get('year')})", f"imdb {user_id} movie {movieid}")
             else:
-                return await editMessage(k, "<i>No Results Found</i>")
+                return await edit_Message(k, "<i>No Results Found</i>")
         else:
             movies = get_poster(title, bulk=True)
             if not movies:
-                return editMessage("<i>No Results Found</i>, Try Again or Use <b>Title ID</b>", k)
+                return edit_Message("<i>No Results Found</i>, Try Again or Use <b>Title ID</b>", k)
             for movie in movies: # Refurbished Soon !!
                 buttons.ibutton(f"🎬 {movie.get('title')} ({movie.get('year')})", f"imdb {user_id} movie {movie.movieID}")
         buttons.ibutton("🚫 Close 🚫", f"imdb {user_id} close")
-        await editMessage(k, '<b><i>Here What I found on IMDb.com</i></b>', buttons.build_menu(1))
+        await edit_Message(k, '<b><i>Here What I found on IMDb.com</i></b>', buttons.build_menu(1))
     else:
-        await sendMessage(message, '<i>Send Movie / TV Series Name along with /imdb Command or send IMDB URL</i>')
+        await send_Message(message, '<i>Send Movie / TV Series Name along with /imdb Command or send IMDB URL</i>')
 
 
 def get_poster(query, bulk=False, id=False, file=None):
@@ -276,15 +270,23 @@ async def imdb_callback(_, query):
                 await bot.send_photo(chat_id=query.message.reply_to_message.chat.id,  caption=cap, photo=imdb['poster'], reply_to_message_id=query.message.reply_to_message.id, reply_markup=InlineKeyboardMarkup(buttons))
             except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
                 poster = imdb.get('poster').replace('.jpg', "._V1_UX360.jpg")
-                await sendMessage(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), poster)
+                await send_Message(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), poster)
         else:
-            await sendMessage(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), 'https://telegra.ph/file/5af8d90a479b0d11df298.jpg')
+            await send_Message(message.reply_to_message, cap, InlineKeyboardMarkup(buttons), 'https://telegra.ph/file/5af8d90a479b0d11df298.jpg')
         await message.delete()
     else:
         await query.answer()
         await query.message.delete()
         await query.message.reply_to_message.delete()
 
+# Register handlers
+bot.add_handler(MessageHandler(imdb_search, filters.command("imdb")))
+bot.add_handler(CallbackQueryHandler(imdb_callback, filters.regex(r'^imdb')))
+
+
+@bot.on_message(filters.command("start"))
+async def start(client: Client, message: Message):
+    await message.reply("🎬 IMDb Search Bot Ready!\nUse /imdb <movie/tv name> to search")
 
 if __name__ == "__main__":
     print("Starting bot initialization...")
