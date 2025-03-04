@@ -2,6 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler  # Add this import
 from pyrogram.errors import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
+from pyrogram import idle
 from imdb import Cinemagoer
 from pycountry import countries as conn
 import re
@@ -296,14 +297,10 @@ async def start(client: Client, message: Message):
 app = Client("my_account")
 
 async def main():
-    try:
-        await bot.start()
-        print("Bot started successfully! Send /start to test")
-        await bot.idle()
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        await bot.stop()
+    await bot.start()
+    print("Bot started successfully! Send /start to test")
+    await idle()  # Call idle directly, not bot.idle()
+    await bot.stop()
 
 if __name__ == "__main__":
     print("Starting bot...")
