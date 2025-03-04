@@ -1,10 +1,24 @@
-from contextlib import suppress
-from re import findall, IGNORECASE
-from imdb import Cinemagoer
-from pycountry import countries as conn
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from pyrogram.errors import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
-from config import config_dict
+from pyrogram import Client, filters
+from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.message_utils import sendMessage, editMessage
+from bot.helper.ext_utils.bot_utils import get_readable_time
+
+# Move this to the TOP after imports
+bot = Client(
+    "imdb_bot",
+    api_id=config_dict.API_ID,
+    api_hash=config_dict.API_HASH,
+    bot_token=config_dict.BOT_TOKEN
+)
+
+# Then add handlers AFTER client initialization
+bot.add_handler(MessageHandler(imdb_search, filters=command(BotCommands.IMDBCommand) & CustomFilters.authorized & ~CustomFilters.blacklisted))
+bot.add_handler(CallbackQueryHandler(imdb_callback, filters=regex(r'^imdb')))
+
+@bot.on_message(filters.command("start"))
+async def start(client, message):
+    await message.reply("IMDb Bot is running!")
 
 imdb = Cinemagoer()
 
@@ -224,25 +238,6 @@ async def imdb_callback(_, query):
         await query.message.delete()
         await query.message.reply_to_message.delete()
 
-
-bot.add_handler(MessageHandler(imdb_search, filters=command(BotCommands.IMDBCommand) & CustomFilters.authorized & ~CustomFilters.blacklisted))
-bot.add_handler(CallbackQueryHandler(imdb_callback, filters=regex(r'^imdb')))
-
-# Initialize the Client properly
-bot = Client(
-    "imdb_bot",
-    api_id=config_dict.API_ID,
-    api_hash=config_dict.API_HASH,
-    bot_token=config_dict.BOT_TOKEN
-)
-
-
-
-
-async def main():
-    await bot.start()
-    print("Bot started successfully!")
-    await bot.idle()
 
 if __name__ == "__main__":
     print("Starting bot initialization...")
