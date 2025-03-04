@@ -8,6 +8,9 @@ import re
 from contextlib import suppress
 from datetime import timedelta
 from config import config_dict
+import logging
+logging.basicConfig(level=logging.INFO)
+
 
 # Initialize client
 bot = Client(
@@ -293,7 +296,15 @@ async def start(client: Client, message: Message):
 app = Client("my_account")
 
 async def main():
-    async with bot:
-        ...  # your bot startup logic
-bot.run(main())  # note the parentheses
+    try:
+        await bot.start()
+        print("Bot started successfully! Send /start to test")
+        await bot.idle()
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        await bot.stop()
 
+if __name__ == "__main__":
+    print("Starting bot...")
+    bot.run(main)
