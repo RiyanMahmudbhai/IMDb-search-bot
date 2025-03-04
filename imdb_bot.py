@@ -1,9 +1,7 @@
-# At the VERY TOP of your file
 from pyrogram import Client, filters
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from pyrogram.handlers import MessageHandler, CallbackQueryHandler  # Add this import
 from pyrogram.errors import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
-
-# Then other imports
 from imdb import Cinemagoer
 from pycountry import countries as conn
 import re
@@ -11,32 +9,13 @@ from contextlib import suppress
 from datetime import timedelta
 from config import config_dict
 
-# Move this to the TOP after imports
-# Initialize client AFTER all imports
+# Initialize client
 bot = Client(
     "imdb_bot",
     api_id=config_dict.API_ID,
     api_hash=config_dict.API_HASH,
     bot_token=config_dict.BOT_TOKEN
 )
-
-# Then add handlers AFTER client initialization
-bot.add_handler(MessageHandler(imdb_search, filters=command(BotCommands.IMDBCommand) & CustomFilters.authorized & ~CustomFilters.blacklisted))
-bot.add_handler(CallbackQueryHandler(imdb_callback, filters=regex(r'^imdb')))
-
-@bot.on_message(filters.command("start"))
-async def start(client, message):
-    await message.reply("IMDb Bot is running!")
-
-# Add these functions to your code
-def get_readable_time(seconds: int) -> str:
-    periods = [('d', 86400), ('h', 3600), ('m', 60), ('s', 1)]
-    result = ''
-    for period_name, period_seconds in periods:
-        if seconds >= period_seconds:
-            period_value, seconds = divmod(seconds, period_seconds)
-            result += f'{int(period_value)}{period_name} '
-    return result.strip()
 
 class ButtonMaker:
     def __init__(self):
@@ -68,6 +47,24 @@ async def sendMessage(message: Message, text, buttons=None, photo=None):
 async def editMessage(message: Message, text, buttons=None):
     await message.edit(text, reply_markup=buttons)
 
+# Modified handler registration
+bot.add_handler(MessageHandler(imdb_search, filters.command("imdb")))  # Simple command filter
+bot.add_handler(CallbackQueryHandler(imdb_callback, filters.regex(r'^imdb')))
+
+
+@bot.on_message(filters.command("start"))
+async def start(client, message):
+    await message.reply("IMDb Bot is running!")
+
+# Add these functions to your code
+def get_readable_time(seconds: int) -> str:
+    periods = [('d', 86400), ('h', 3600), ('m', 60), ('s', 1)]
+    result = ''
+    for period_name, period_seconds in periods:
+        if seconds >= period_seconds:
+            period_value, seconds = divmod(seconds, period_seconds)
+            result += f'{int(period_value)}{period_name} '
+    return result.strip()
 
 
 imdb = Cinemagoer()
