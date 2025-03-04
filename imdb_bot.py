@@ -294,8 +294,6 @@ app = Client("my_account")
 
 async def main():
     async with bot:
-        await bot.send_message("me", "Hi!")
+        ...  # your bot startup logic
+bot.run(main())  # note the parentheses
 
-if __name__ == "__main__":
-    print("Starting bot...")
-    bot.run(main)  # Pass function reference, no parentheses
