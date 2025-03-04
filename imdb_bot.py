@@ -289,6 +289,5 @@ async def start(client: Client, message: Message):
     await message.reply("🎬 IMDb Search Bot Ready!\nUse /imdb <movie/tv name> to search")
 
 if __name__ == "__main__":
-    print("Starting bot initialization...")
+    print("Starting bot...")
     bot.run(main())
-    print("Bot running!")
