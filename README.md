@@ -112,5 +112,5 @@ MIT License
 ---
 
 **Note:** Replace placeholder credentials in config.py before deployment!  
-**Maintainer:** Asif Alex (@asifalex)
+**Maintainer Telegram :** Asif Alex (@asifalex) 
 ```
