@@ -3,39 +3,59 @@
 
 A Telegram bot for searching IMDb movie/TV information directly in chats. Features rich media responses and interactive results.
 
+![MIT License](https://img.shields.io/badge/License-MIT-green.svg) [![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://python.org)
+
 ## Features ✨
-- IMDb title search by name/URL
-- Detailed info with posters
-- Interactive result selection
-- Trailer links
-- Multi-language support
-- Automatic restarts
+- 🔍 Search IMDb titles by name, URL, or ID
+- 🎞️ Detailed information with posters and trailers
+- 🌐 Multi-language support
+- 🔄 Interactive result selection
+- 🤖 Automatic restarts on failure
+- 📱 Responsive design for Telegram clients
 
-## Systemd Deployment 🚀
+## Installation 📦
 
-### 1. Clone Repository
+### Clone Repository
 ```bash
 git clone https://github.com/yourusername/IMDb-search-bot.git
 cd IMDb-search-bot
 ```
 
-### 2. Install Dependencies
+### Install Dependencies
 ```bash
 pip3 install -r requirements.txt
 ```
 
-### 3. Create Configuration
+## Configuration ⚙️
+
+1. Copy the example configuration file:
 ```bash
 cp config.example.py config.py
-nano config.py  # Add your credentials
 ```
 
-### 4. Create Systemd Service
+2. Edit `config.py` with your credentials:
+```python
+class Config:
+    API_ID = "123456"          # Get from my.telegram.org
+    API_HASH = "abcdef12345"   # Get from my.telegram.org
+    BOT_TOKEN = "123:ABC"      # Get from @BotFather
+    IMDB_TEMPLATE = """
+    🏷 Title: {title} ({year})
+    🌟 Rating: {rating}
+    📖 Plot: {plot}
+    """
+```
+
+## Deployment 🚀
+
+### Systemd Service Setup
+
+1. Create service file:
 ```bash
 sudo nano /etc/systemd/system/imdb-bot.service
 ```
 
-Paste this configuration (adjust paths if needed):
+2. Paste this configuration (adjust paths as needed):
 ```ini
 [Unit]
 Description=IMDb Telegram Bot Service
@@ -43,8 +63,8 @@ After=network.target
 
 [Service]
 User=root
-WorkingDirectory=/root/IMDb-search-bot
-ExecStart=/usr/bin/python3 /root/IMDb-search-bot/imdb_bot.py
+WorkingDirectory=/path/to/IMDb-search-bot
+ExecStart=/usr/bin/python3 /path/to/IMDb-search-bot/imdb_bot.py
 Restart=always
 RestartSec=30
 Environment=PYTHONUNBUFFERED=1
@@ -53,64 +73,45 @@ Environment=PYTHONUNBUFFERED=1
 WantedBy=multi-user.target
 ```
 
-### 5. Enable & Start Service
+3. Enable and start the service:
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable imdb-bot
 sudo systemctl start imdb-bot
 ```
 
-### 6. Verify Operation
-```bash
-sudo systemctl status imdb-bot
-journalctl -u imdb-bot -f  # Live logs
-```
+## Service Management 🔧
 
-## Key Commands 🔧
-- Start/Stop:  
-  `sudo systemctl start|stop imdb-bot`
-- Restart:  
-  `sudo systemctl restart imdb-bot`
-- Check Status:  
-  `systemctl status imdb-bot`
-- View Logs:  
-  `journalctl -u imdb-bot -f`
-
-## Configuration ⚙️
-Edit `config.py` with:
-```python
-class Config:
-    API_ID = "123456"          # From my.telegram.org
-    API_HASH = "abcdef12345"   # From my.telegram.org
-    BOT_TOKEN = "123:ABC"      # From @BotFather
-    IMDB_TEMPLATE = """
-    🏷 Title: {title} ({year})
-    🌟 Rating: {rating}
-    📖 Plot: {plot}
-    """
-```
+| Command                      | Description                  |
+|------------------------------|------------------------------|
+| `sudo systemctl start imdb-bot` | Start the bot service       |
+| `sudo systemctl stop imdb-bot`  | Stop the bot service        |
+| `sudo systemctl restart imdb-bot` | Restart the bot service   |
+| `journalctl -u imdb-bot -f`   | View live logs              |
+| `systemctl status imdb-bot`   | Check service status        |
 
 ## Usage 🎯
+Send these commands in Telegram:
 ```
-/imdb The Matrix         - Search movies
-/imdb tt0133093         - Search by IMDb ID
-/imdb https://imdb.com  - Search by URL
+/imdb The Matrix         # Search by title
+/imdb tt0133093         # Search by IMDb ID
+/imdb https://imdb.com  # Search by URL
 ```
 
 ## Directory Structure 📂
 ```
 IMDb-search-bot/
-├── config.py           # Configuration
-├── imdb_bot.py         # Main bot code
-├── requirements.txt    # Dependencies
-└── imdb_bot.session    # Auto-generated session
+├── config.py           # Configuration file
+├── imdb_bot.py         # Main bot logic
+├── requirements.txt    # Dependency list
+└── imdb_bot.session    # Session file (auto-generated)
 ```
 
 ## License 📄
-MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-**Note:** Replace placeholder credentials in config.py before deployment!  
-**Maintainer Telegram :** Asif Alex (@asifalex) 
+**Important Note:** Replace all placeholder credentials in `config.py` before deployment!  
+**Maintainer Contact:** [@asifalex](https://t.me/asifalex) on Telegram
 ```
