@@ -1,4 +1,4 @@
-```markdown
+
 # IMDb Search Bot 🤖🎬
 
 A Telegram bot for searching IMDb movie/TV information directly in chats. Features rich media responses and interactive results.
@@ -12,6 +12,19 @@ A Telegram bot for searching IMDb movie/TV information directly in chats. Featur
 - 🔄 Interactive result selection
 - 🤖 Automatic restarts on failure
 - 📱 Responsive design for Telegram clients
+
+
+## Installation 📦
+
+### Clone Repository
+```bash
+git clone https://github.com/yourusername/IMDb-search-bot.git
+cd IMDb-search-bot
+```
+
+--- 
+
+Let me know if you'd like to further modify or add anything!
 
 ## Installation 📦
 
